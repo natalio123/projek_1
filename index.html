@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Temperature Monitoring System</title>
+  <style>
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+  </style>
+</head>
+<body>
+  <h1>Temperature Monitoring System</h1>
+  <button id="on-button">ON</button>
+  <button id="off-button">OFF</button>
+  <table id="temperature-data">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Time</th>
+        <th>Temperature (°C)</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody id="temperature-data-body">
+    </tbody>
+  </table>
+
+  <script>
+    const onButton = document.getElementById('on-button');
+    const offButton = document.getElementById('off-button');
+    const tableBody = document.getElementById('temperature-data-body');
+
+    onButton.addEventListener('click', () => {
+      fetch('/update-status', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ status: 'ON' })
+      })
+      .then(response => response.json())
+      .then(data => console.log(data))
+      .catch(error => console.error(error));
+    });
+
+    offButton.addEventListener('click', () => {
+      fetch('/update-status', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ status: 'OFF' })
+      })
+      .then(response => response.json())
+      .then(data => console.log(data))
+      .catch(error => console.error(error));
+    });
+
+    fetch('/get-data')
+      .then(response => response.json())
+      .then(data => {
+        data.forEach((row) => {
+          const tableRow = document.createElement('tr');
+          tableRow.innerHTML = 
+            <td>${row.date}</td>
+            <td>${row.time}</td>
+            <td>${row.temperature} °C</td>
+            <td>${row.status}</td>
+          ;
+          tableBody.appendChild(tableRow);
+        });
+      })
+      .catch(error => console.error(error));
+
+    setInterval(() => {
+      fetch('/get-data')
+        .then(response => response.json())
+        .then(data => {
+          tableBody.innerHTML = '';
+          data.forEach((row) => {
+            const tableRow = document.createElement('tr');
+            tableRow.innerHTML = 
+              <td>${row.date}</td>
+              <td>${row.time}</td>
+              <td>${row.temperature} °C</td>
+              <td>${row.status}</td>
+            ;
+            tableBody.appendChild(tableRow);
+          });
+        })
+        .catch(error => console.error(error));
+    }, 10000);
+  </script>
+  </body>
+  </html>
